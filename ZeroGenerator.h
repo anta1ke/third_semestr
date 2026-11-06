@@ -21,5 +21,5 @@ class ZeroGenerator : public Generator {
 		 * @brief Возвращает ноль
 		 * @return всегда 0
 		 */
-		int generate() override;
+		int generate() const override;
 };
