@@ -30,5 +30,5 @@ class InputGenerator : public Generator {
 		 * @brief Прочитать число из потока
 		 * @return прочитанное число, либо 0 при ошибке
 		 */
-		int generate() override;
+		int generate() const override;
 };
