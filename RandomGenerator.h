@@ -22,12 +22,12 @@ class RandomGenerator : public Generator {
 		/**
 		 * @brief Движок генерации псевдослучайных чисел
 		 */
-		std::mt19937 engine;
+		mutable std::mt19937 engine;
 
 		/**
 		 * @brief Равномерное распределение целых чисел для движка
 		 */
-		std::uniform_int_distribution<int> distribution;
+		mutable std::uniform_int_distribution<int> distribution;
 
 	public:
 		/**
@@ -46,5 +46,5 @@ class RandomGenerator : public Generator {
 		 * @brief Генерация случайного числа
 		 * @return сгенерированное число из диапазона [minValue; maxValue]
 		 */
-		int generate() override;
+		int generate() const override;
 };
