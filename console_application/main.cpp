@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdlib>
+#include <memory>
 
 #include "../lib/include/Matrix.h"
 #include "../lib/include/ZeroGenerator.h"
@@ -38,7 +39,7 @@ int getInt(const char* message);
  * @param message - сообщение
  * @return указатель на выбранный генератор
  */
-Generator* chooseGenerator(const char* message);
+std::unique_ptr<Generator> chooseGenerator(const char* message);
 
 /**
  * @brief Функция выбора и выполнения задания
@@ -58,14 +59,13 @@ int main(void) {
 
 	Matrix<int> matrix(rows, columns);
 
-	Generator* generator = chooseGenerator("Выберите тип заполнения массива:");
+	const std::unique_ptr<Generator> generator = chooseGenerator("Выберите тип заполнения массива:");
 	matrix.fillArray(*generator);
 
 	std::cout << "Полученная матрица:\n" << matrix.toString() << std::endl;
 
 	runTask(matrix, *generator);
 
-	delete generator;
 	return 0;
 }
 
@@ -87,7 +87,7 @@ int getInt(const char* message) {
 	std::exit(1);
 }
 
-Generator* chooseGenerator(const char* message) {
+std::unique_ptr<Generator> chooseGenerator(const char* message) {
 	std::cout << message << std::endl;
 	std::cout << zero_fill << " - нулями\n"
 		<< random_fill << " - случайными числами\n"
@@ -96,20 +96,20 @@ Generator* chooseGenerator(const char* message) {
 	const int var = getInt("");
 	switch (var) {
 		case zero_fill: {
-				  return new ZeroGenerator();
+				  return std::make_unique<ZeroGenerator>();
 				  }
 		case random_fill: {
 				  const int minVal = getInt("Введите минимум диапазона:");
 				  const int maxVal = getInt("Введите максимум диапазона:");
-				  return new RandomGenerator(minVal, maxVal);
+				  return std::make_unique<RandomGenerator>(minVal, maxVal);
 				  }
 		case const_fill: {
 				 const int value = getInt("Введите значение константы:");
-				 return new ConstGenerator(value);
+				 return std::make_unique<ConstGenerator>(value);
 				 }
 		case input_fill: {
 				 std::cout << "Введите значения массива:" << std::endl;
-				 return new InputGenerator(std::cin);
+				 return std::make_unique<InputGenerator>(std::cin);
 				 }
 		default:
 				 std::cerr << "Некорректный выбор" << std::endl;

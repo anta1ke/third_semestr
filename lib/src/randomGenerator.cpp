@@ -5,6 +5,6 @@
 RandomGenerator::RandomGenerator(const int minVal, const int maxVal)
 	: minValue(std::min(minVal, maxVal)), maxValue(std::max(minVal, maxVal)), engine(std::random_device{}()), distribution(minValue, maxValue) {}
 
-int RandomGenerator::generate() {
+int RandomGenerator::generate() const {
 	return distribution(engine);
 }

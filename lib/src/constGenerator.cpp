@@ -2,6 +2,6 @@
 
 ConstGenerator::ConstGenerator(const int value) : constValue(value) {}
 
-int ConstGenerator::generate() {
+int ConstGenerator::generate() const {
 	return constValue;
 }
