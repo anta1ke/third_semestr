@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Article.h"
+class Archive;
 
 /**
  * @brief Класс CriminalCase (Дело)
@@ -48,13 +49,16 @@ class CriminalCase {
 
 		/**
 		 * @brief Конструктор
+		 * @param archive - архив, в котором проверяются номер дела и следователь
 		 * @param number - номер дела
 		 * @param year - год дела
 		 * @param content - содержание дела
 		 * @param article - статья преступления
 		 * @param investigatorId - ID следователя
+		 * @throw std::invalid_argument - если дело с таким номером уже есть в архиве
+		 * или следователя с таким ID нет в архиве
 		 */
-		CriminalCase(const std::string& number, const int year, const std::string& content, const Article& article, const int investigatorId);
+		CriminalCase(const Archive& archive, const std::string& number, const int year, const std::string& content, const Article& article, const int investigatorId);
 
 		/**
 		 * @brief Получить номер дела
@@ -94,11 +98,12 @@ class CriminalCase {
 
 		/**
 		 * @brief Добавить осужденного по делу
-		 * (существование осужденного проверяет архив при добавлении дела)
+		 * @param archive - архив, в котором проверяется существование осужденного
 		 * @param convictId - ID осужденного
-		 * @throw std::invalid_argument - если этот осужденный уже добавлен в дело
+		 * @throw std::invalid_argument - если осужденного с таким ID нет в архиве
+		 * или он уже добавлен в дело
 		 */
-		void addConvictId(const int convictId);
+		void addConvictId(const Archive& archive, const int convictId);
 
 		/**
 		 * @brief Проверить, проходит ли осужденный с данным ID по делу
