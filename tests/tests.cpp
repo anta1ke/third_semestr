@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <utility>
 
@@ -94,6 +95,52 @@ TEST(MatrixCopy, SelfAssignmentIsSafe) {
     Matrix<int>& ref = a;
     a = ref;               // не должно сломаться
     EXPECT_EQ(a[0][0], 5);
+}
+
+TEST(MatrixCopy, CopyAssignmentChangesSize) {
+    Matrix<int> a(2, 3);
+    a[1][2] = 7;
+
+    Matrix<int> b(5, 1);   // другой размер
+    b = a;
+
+    EXPECT_EQ(b.getRows(), 2u);
+    EXPECT_EQ(b.getColumns(), 3u);
+    EXPECT_EQ(b[1][2], 7);
+    EXPECT_EQ(b[0][0], 0);
+}
+
+TEST(MatrixCopy, CopyAssignmentFromEmpty) {
+    const Matrix<int> a;
+    Matrix<int> b(2, 2);
+    b = a;
+
+    EXPECT_EQ(b.getRows(), 0u);
+    EXPECT_EQ(b.getColumns(), 0u);
+}
+
+// Matrix: проверка выхода за границы
+
+TEST(MatrixIndex, InRangeDoesNotThrow) {
+    Matrix<int> m(2, 2);
+    EXPECT_NO_THROW(m[0]);
+    EXPECT_NO_THROW(m[1]);
+}
+
+TEST(MatrixIndex, OutOfRangeThrows) {
+    Matrix<int> m(2, 2);
+    EXPECT_THROW(m[2], std::out_of_range);
+    EXPECT_THROW(m[100], std::out_of_range);
+}
+
+TEST(MatrixIndex, ConstOutOfRangeThrows) {
+    const Matrix<int> m(2, 2);
+    EXPECT_THROW(m[2], std::out_of_range);
+}
+
+TEST(MatrixIndex, EmptyMatrixThrows) {
+    const Matrix<int> m;
+    EXPECT_THROW(m[0], std::out_of_range);
 }
 
 // Matrix: операторы сравнения
@@ -255,8 +302,7 @@ TEST(Task1Test, SimpleCase) {
         for (size_t j = 0; j < 3; j++)
             m[i][j] = data[i][j];
 
-    ZeroGenerator dummyGen;
-    const Task1Exercise task(m, dummyGen);
+    const Task1Exercise task(m);
     const Matrix<int> result = task.solve();
 
     EXPECT_EQ(result[1][0], 0);
@@ -273,8 +319,7 @@ TEST(Task1Test, OnlyFirstMinimumIsReplaced) {
     Matrix<int> m(3, 1);
     m[0][0] = 5; m[1][0] = 2; m[2][0] = 2;
 
-    ZeroGenerator dummyGen;
-    const Task1Exercise task(m, dummyGen);
+    const Task1Exercise task(m);
     const Matrix<int> result = task.solve();
 
     EXPECT_EQ(result[0][0], 5);
@@ -287,8 +332,7 @@ TEST(Task1Test, OriginalIsNotModified) {
     m[0][0] = 1; m[0][1] = 2;
     m[1][0] = 3; m[1][1] = 4;
 
-    ZeroGenerator dummyGen;
-    const Task1Exercise task(m, dummyGen);
+    const Task1Exercise task(m);
     task.solve();
 
     // исходная матрица должна остаться прежней
@@ -298,8 +342,7 @@ TEST(Task1Test, OriginalIsNotModified) {
 
 TEST(Task1Test, EmptyMatrixReturnsEmpty) {
     const Matrix<int> m;
-    ZeroGenerator dummyGen;
-    const Task1Exercise task(m, dummyGen);
+    const Task1Exercise task(m);
     const Matrix<int> result = task.solve();
 
     EXPECT_EQ(result.getRows(), 0u);
@@ -315,8 +358,7 @@ TEST(Task2Test, SimpleCase) {
     m[1][0] = -9; m[1][1] = 3;
     m[2][0] = 4;  m[2][1] = 5;
 
-    ZeroGenerator dummyGen;
-    const Task2Exercise task(m, dummyGen);
+    const Task2Exercise task(m);
     const Matrix<int> result = task.solve();
 
     EXPECT_EQ(result.getRows(), 4u);
@@ -330,8 +372,7 @@ TEST(Task2Test, MaximumInLastRow) {
     m[0][0] = 1; m[0][1] = 2;
     m[1][0] = 7; m[1][1] = 3;
 
-    ZeroGenerator dummyGen;
-    const Task2Exercise task(m, dummyGen);
+    const Task2Exercise task(m);
     const Matrix<int> result = task.solve();
 
     EXPECT_EQ(result.toString(), "1 2\n7 3\n7 3");
@@ -343,8 +384,7 @@ TEST(Task2Test, MultipleRowsContainingMax) {
     m[1][0] = 2;  m[1][1] = 3;
     m[2][0] = -5; m[2][1] = 0;
 
-    ZeroGenerator dummyGen;
-    const Task2Exercise task(m, dummyGen);
+    const Task2Exercise task(m);
     const Matrix<int> result = task.solve();
 
     // максимум по модулю = 5 в строках 0 и 2
@@ -356,8 +396,7 @@ TEST(Task2Test, SingleRow) {
     Matrix<int> m(1, 2);
     m[0][0] = 3; m[0][1] = 4;
 
-    ZeroGenerator dummyGen;
-    const Task2Exercise task(m, dummyGen);
+    const Task2Exercise task(m);
     const Matrix<int> result = task.solve();
 
     EXPECT_EQ(result.toString(), "3 4\n3 4");
@@ -369,8 +408,7 @@ TEST(Task2Test, OriginalIsNotModified) {
     m[0][1] = 4; m[1][1] = 5; m[2][1] = 6;
     m[0][2] = 7; m[1][2] = 8; m[2][2] = 9;
 
-    ZeroGenerator dummyGen;
-    const Task2Exercise task(m, dummyGen);
+    const Task2Exercise task(m);
     task.solve();
 
     EXPECT_EQ(m.getRows(), 3u);
@@ -379,8 +417,7 @@ TEST(Task2Test, OriginalIsNotModified) {
 
 TEST(Task2Test, EmptyMatrixReturnsEmpty) {
     const Matrix<int> m;
-    ZeroGenerator dummyGen;
-    const Task2Exercise task(m, dummyGen);
+    const Task2Exercise task(m);
     const Matrix<int> result = task.solve();
 
     EXPECT_EQ(result.getRows(), 0u);
