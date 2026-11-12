@@ -26,11 +26,6 @@ int main() {
 	const Convict volkov("Волков Дмитрий Андреевич", "11.11.1985", "8 лет лишения свободы");
 	const Convict lebedev("Лебедев Игорь Олегович", "30.07.1979", "3 года условно");
 
-	// Коллекция объектов базового типа (ссылок на Person), заполненная объектами типов-наследников
-	const std::vector<std::reference_wrapper<const Person>> people = {
-		std::cref(smirnov), std::cref(kuznetsova), std::cref(orlov), std::cref(volkov), std::cref(lebedev)
-	};
-
 	std::cout << "Все люди в архиве:" << std::endl;
 	for (const Person& person : people) {
 		std::cout << person.getInfo() << std::endl;
