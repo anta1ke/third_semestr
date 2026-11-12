@@ -10,9 +10,8 @@ class Task2Exercise : public Exercise {
 		/**
 		 * @brief Конструктор
 		 * @param src - ссылка на матрицу
-		 * @param gen - ссылка на генератор
 		 */
-		Task2Exercise(const Matrix<int>& src, Generator& gen);
+		explicit Task2Exercise(const Matrix<int>& src);
 
 		/**
 		 * @brief Перегруженный деструктор
