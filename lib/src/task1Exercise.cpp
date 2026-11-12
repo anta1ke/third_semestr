@@ -1,6 +1,6 @@
 #include "../include/Task1Exercise.h"
 
-Task1Exercise::Task1Exercise(const Matrix<int>& src, Generator& gen) : Exercise(src, gen) {}
+Task1Exercise::Task1Exercise(const Matrix<int>& src) : Exercise(src) {}
 
 Matrix<int> Task1Exercise::solve() const {
 	Matrix<int> result(source);
