@@ -23,9 +23,8 @@ class Investigator : public Person {
 		 * @param fullName - ФИО следователя
 		 * @param birthDate - дата рождения
 		 * @param rank - звание
-		 * @param id - id следователя (0 для автогенерации)
 		 */
-		Investigator(const std::string& fullName, const std::string& birthDate, const std::string& rank, const int id = 0);
+		Investigator(const std::string& fullName, const std::string& birthDate, const std::string& rank);
 
 		/**
 		 * @brief Получить звание следователя
