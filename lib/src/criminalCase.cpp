@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <stdexcept>
 
 #include "../include/CriminalCase.h"
 
@@ -22,6 +23,9 @@ const std::vector<int>& CriminalCase::getConvictIds() const noexcept {
 }
 
 void CriminalCase::addConvictId(const int convictId) {
+	if (hasConvict(convictId)) {
+		throw std::invalid_argument("Осужденный с ID " + std::to_string(convictId) + " уже добавлен в дело");
+	}
 	convictIds.push_back(convictId);
 }
 
