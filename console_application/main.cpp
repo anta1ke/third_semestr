@@ -1,6 +1,5 @@
 #include <iostream>
 #include <cstdlib>
-#include <memory>
 
 #include "../lib/include/Matrix.h"
 #include "../lib/include/ZeroGenerator.h"
@@ -21,6 +20,13 @@ enum gen {zero_fill, random_fill, const_fill, input_fill};
 enum task {task1_choice, task2_choice};
 
 /**
+ * @brief Функция проверки, что указатель на сообщение непустой
+ * @param message - сообщение
+ * @return ничего не возвращает, если указатель непустой, иначе - завершает программу
+ */
+void checkMessage(const char* message);
+
+/**
  * @brief Функция для получения целого положительного числа
  * @param message - сообщение
  * @return полученное число, если ввод успешен и пройдена проверка, иначе - завершает программу
@@ -35,11 +41,18 @@ size_t getPos(const char* message);
 int getInt(const char* message);
 
 /**
- * @brief Функция выбора генератора
+ * @brief Функция выбора генератора и запуска обработки матрицы
+ * @param matrix - ссылка на матрицу matrix
  * @param message - сообщение
- * @return указатель на выбранный генератор
  */
-std::unique_ptr<Generator> chooseGenerator(const char* message);
+void chooseGenerator(Matrix<int>& matrix, const char* message);
+
+/**
+ * @brief Функция заполнения матрицы, вывода и выполнения задания
+ * @param matrix - ссылка на матрицу matrix
+ * @param generator - константная ссылка на генератор
+ */
+void processMatrix(Matrix<int>& matrix, const Generator& generator);
 
 /**
  * @brief Функция выбора и выполнения задания
@@ -59,14 +72,16 @@ int main(void) {
 
 	Matrix<int> matrix(rows, columns);
 
-	const std::unique_ptr<Generator> generator = chooseGenerator("Выберите тип заполнения массива:");
-	matrix.fillArray(*generator);
-
-	std::cout << "Полученная матрица:\n" << matrix.toString() << std::endl;
-
-	runTask(matrix, *generator);
+	chooseGenerator(matrix, "Выберите тип заполнения массива:");
 
 	return 0;
+}
+
+void checkMessage(const char* message) {
+	if (message == nullptr) {
+		std::cerr << "Ошибка: передан пустой указатель на сообщение" << std::endl;
+		std::exit(1);
+	}
 }
 
 size_t getPos(const char* message) {
@@ -87,7 +102,8 @@ int getInt(const char* message) {
 	std::exit(1);
 }
 
-std::unique_ptr<Generator> chooseGenerator(const char* message) {
+void chooseGenerator(Matrix<int>& matrix, const char* message) {
+	checkMessage(message);
 	std::cout << message << std::endl;
 	std::cout << zero_fill << " - нулями\n"
 		<< random_fill << " - случайными числами\n"
@@ -96,26 +112,41 @@ std::unique_ptr<Generator> chooseGenerator(const char* message) {
 	const int var = getInt("");
 	switch (var) {
 		case zero_fill: {
-				  return std::make_unique<ZeroGenerator>();
+				  const ZeroGenerator generator{};
+				  processMatrix(matrix, generator);
+				  break;
 				  }
 		case random_fill: {
 				  const int minVal = getInt("Введите минимум диапазона:");
 				  const int maxVal = getInt("Введите максимум диапазона:");
-				  return std::make_unique<RandomGenerator>(minVal, maxVal);
+				  const RandomGenerator generator(minVal, maxVal);
+				  processMatrix(matrix, generator);
+				  break;
 				  }
 		case const_fill: {
 				 const int value = getInt("Введите значение константы:");
-				 return std::make_unique<ConstGenerator>(value);
+				 const ConstGenerator generator(value);
+				 processMatrix(matrix, generator);
+				 break;
 				 }
 		case input_fill: {
 				 std::cout << "Введите значения массива:" << std::endl;
-				 return std::make_unique<InputGenerator>(std::cin);
+				 const InputGenerator generator(std::cin);
+				 processMatrix(matrix, generator);
+				 break;
 				 }
 		default:
 				 std::cerr << "Некорректный выбор" << std::endl;
 				 std::exit(1);
 	}
 }
+
+void processMatrix(Matrix<int>& matrix, const Generator& generator) {
+	matrix.fillArray(generator);
+	std::cout << "Полученная матрица:\n" << matrix.toString() << std::endl;
+	runTask(matrix);
+}
+
 
 void runTask(const Matrix<int>& matrix, Generator& generator) {
 	std::cout << "Выберите задание:\n"
