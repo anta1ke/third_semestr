@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <stdexcept>
 
 #include "../include/Archive.h"
@@ -18,20 +17,14 @@ void Archive::addInvestigator(const Investigator& investigator) {
 }
 
 void Archive::addArticle(const Article& article) {
-	auto it = std::find_if(articles.begin(), articles.end(), [&article](const Article& a) {
-		return a.getNumber() == article.getNumber();
-	});
-	if (it != articles.end()) {
+	if (hasArticle(article.getNumber())) {
 		throw std::invalid_argument("Статья " + article.getNumber() + " уже есть в архиве");
 	}
 	articles.push_back(article);
 }
 
 void Archive::addCase(const CriminalCase& criminalCase) {
-	auto it = std::find_if(cases.begin(), cases.end(), [&criminalCase](const CriminalCase& c) {
-		return c.getNumber() == criminalCase.getNumber();
-	});
-	if (it != cases.end()) {
+	if (hasCase(criminalCase.getNumber())) {
 		throw std::invalid_argument("Дело с номером " + criminalCase.getNumber() + " уже есть в архиве");
 	}
 
@@ -62,6 +55,24 @@ const std::vector<CriminalCase>& Archive::getCases() const noexcept {
 
 const std::vector<Article>& Archive::getArticles() const noexcept {
 	return articles;
+}
+
+bool Archive::hasArticle(const std::string& number) const noexcept {
+	for (const Article& a : articles) {
+		if (a.getNumber() == number) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Archive::hasCase(const std::string& number) const noexcept {
+	for (const CriminalCase& c : cases) {
+		if (c.getNumber() == number) {
+			return true;
+		}
+	}
+	return false;
 }
 
 bool Archive::hasConvict(const int id) const noexcept {
