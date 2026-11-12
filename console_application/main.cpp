@@ -57,9 +57,8 @@ void processMatrix(Matrix<int>& matrix, const Generator& generator);
 /**
  * @brief Функция выбора и выполнения задания
  * @param matrix - ссылка на матрицу matrix
- * @param generator - ссылка на генератор
  */
-void runTask(const Matrix<int>& matrix, Generator& generator);
+void runTask(const Matrix<int>& matrix);
 
 /**
  * @brief Точка входа в программу
@@ -85,6 +84,7 @@ void checkMessage(const char* message) {
 }
 
 size_t getPos(const char* message) {
+	checkMessage(message);
 	size_t value = 0;
 	std::cout << message << std::endl;
 	if (std::cin >> value && value > 0) {
@@ -95,6 +95,7 @@ size_t getPos(const char* message) {
 }
 
 int getInt(const char* message) {
+	checkMessage(message);
 	int value = 0;
 	std::cout << message << std::endl;
 	if (std::cin >> value) return value;
@@ -147,8 +148,7 @@ void processMatrix(Matrix<int>& matrix, const Generator& generator) {
 	runTask(matrix);
 }
 
-
-void runTask(const Matrix<int>& matrix, Generator& generator) {
+void runTask(const Matrix<int>& matrix) {
 	std::cout << "Выберите задание:\n"
 		<< task1_choice << " - Задание 1. Заменить минимальный элемент каждого столбца нулем\n"
 		<< task2_choice << " - Задание 2. Вставить после каждой строки, содержащей максимальный по модулю элемент, последнюю строку" << std::endl;
@@ -156,13 +156,13 @@ void runTask(const Matrix<int>& matrix, Generator& generator) {
 
 	switch(var) {
 		case task1_choice: {
-				   const Task1Exercise task(matrix, generator);
+				   const Task1Exercise task(matrix);
 				   const Matrix<int> result = task.solve();
 				   std::cout << "Результат:\n" << result.toString() << std::endl;
 				   break;
 				   }
 		case task2_choice: {
-				   const Task2Exercise task(matrix, generator);
+				   const Task2Exercise task(matrix);
 				   const Matrix<int> result = task.solve();
 				   std::cout << "Результат:\n" << result.toString() << std::endl;
 				   break;
