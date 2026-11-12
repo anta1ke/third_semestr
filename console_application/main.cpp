@@ -1,5 +1,4 @@
 #include <iostream>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -18,28 +17,32 @@ void printCases(const Archive& archive, const std::string& title, const std::vec
  * @return 0, если программа выполнена корректно
  */
 int main() {
+	// Объекты типов-наследников
+	const Investigator smirnov("Смирнов Алексей Павлович", "14.05.1975", "майор юстиции");
+	const Investigator kuznetsova("Кузнецова Ольга Игоревна", "02.09.1982", "капитан юстиции");
+	const Convict orlov("Орлов Сергей Николаевич", "21.01.1990", "5 лет лишения свободы");
+	const Convict volkov("Волков Дмитрий Андреевич", "11.11.1985", "8 лет лишения свободы");
+	const Convict lebedev("Лебедев Игорь Олегович", "30.07.1979", "3 года условно");
+
 	// Коллекция объектов базового типа, заполненная объектами типов-наследников
-	std::vector<std::unique_ptr<Person>> people;
-	people.push_back(std::make_unique<Investigator>("Смирнов Алексей Павлович", "14.05.1975", "майор юстиции"));
-	people.push_back(std::make_unique<Investigator>("Кузнецова Ольга Игоревна", "02.09.1982", "капитан юстиции"));
-	people.push_back(std::make_unique<Convict>("Орлов Сергей Николаевич", "21.01.1990", "5 лет лишения свободы"));
-	people.push_back(std::make_unique<Convict>("Волков Дмитрий Андреевич", "11.11.1985", "8 лет лишения свободы"));
-	people.push_back(std::make_unique<Convict>("Лебедев Игорь Олегович", "30.07.1979", "3 года условно"));
+	const std::vector<const Person*> people = {&smirnov, &kuznetsova, &orlov, &volkov, &lebedev};
 
 	std::cout << "Все люди в архиве:" << std::endl;
-	for (const std::unique_ptr<Person>& person : people) {
+	for (const Person* person : people) {
+		if (person == nullptr) continue;
 		std::cout << person->getInfo() << std::endl;
 	}
 
-	const int smirnovId = people[0]->getId();
-	const int kuznetsovaId = people[1]->getId();
-	const int orlovId = people[2]->getId();
-	const int volkovId = people[3]->getId();
-	const int lebedevId = people[4]->getId();
+	const int smirnovId = smirnov.getId();
+	const int kuznetsovaId = kuznetsova.getId();
+	const int orlovId = orlov.getId();
+	const int volkovId = volkov.getId();
+	const int lebedevId = lebedev.getId();
 
 	Archive archive;
-	for (std::unique_ptr<Person>& person : people) {
-		archive.addPerson(std::move(person));
+	for (const Person* person : people) {
+		if (person == nullptr) continue;
+		archive.addPerson(*person);
 	}
 
 	const Article theft("ст. 158", "Кража");
@@ -85,6 +88,7 @@ void printCases(const Archive& archive, const std::string& title, const std::vec
 		return;
 	}
 	for (const CriminalCase* c : found) {
+		if (c == nullptr) continue;
 		std::cout << archive.getCaseInfo(*c) << std::endl;
 	}
 }

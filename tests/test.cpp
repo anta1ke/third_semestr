@@ -1,8 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <memory>
+#include <stdexcept>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "../lib/include/Archive.h"
@@ -106,42 +105,51 @@ TEST(CriminalCaseTest, GetInfoContainsFields) {
     EXPECT_NE(info.find("Кража в магазине"), std::string::npos);
 }
 
-// Вспомогательная функция: архив с тестовыми данными
-static Archive makeArchive() {
+// Тестовый класс: люди живут в полях класса дольше архива, архив хранит их адреса
+class ArchiveTest : public ::testing::Test {
+    protected:
+        const Investigator smirnov{"Смирнов А. П.", "14.05.1975", "майор", 1};
+        const Investigator kuznetsova{"Кузнецова О. И.", "02.09.1982", "капитан", 2};
+        const Convict orlov{"Орлов С. Н.", "21.01.1990", "5 лет", 3};
+        const Convict volkov{"Волков Д. А.", "11.11.1985", "8 лет", 4};
+        Archive archive;
+
+        ArchiveTest() {
+            archive.addPerson(smirnov);
+            archive.addPerson(kuznetsova);
+            archive.addPerson(orlov);
+            archive.addPerson(volkov);
+
+            const Article theft("ст. 158", "Кража");
+            const Article fraud("ст. 159", "Мошенничество");
+
+            CriminalCase c1("Д-1", 2015, "Кража из магазина", theft, 1);
+            c1.addConvictId(3);
+            CriminalCase c2("Д-2", 2018, "Мошенничество с недвижимостью", fraud, 2);
+            c2.addConvictId(4);
+            CriminalCase c3("Д-3", 2020, "Кража автомобиля, магазин рядом", theft, 1);
+            c3.addConvictId(3);
+            c3.addConvictId(4);
+
+            archive.addCase(c1);
+            archive.addCase(c2);
+            archive.addCase(c3);
+        }
+};
+
+TEST(ArchiveBasicTest, AddPersonRejectsDuplicateId) {
+    const Convict a("А", "01.01.2000", "1 год", 100);
+    const Investigator b("Б", "02.02.2001", "лейтенант", 100);
+
     Archive archive;
-    archive.addPerson(std::make_unique<Investigator>("Смирнов А. П.", "14.05.1975", "майор", 1));
-    archive.addPerson(std::make_unique<Investigator>("Кузнецова О. И.", "02.09.1982", "капитан", 2));
-    archive.addPerson(std::make_unique<Convict>("Орлов С. Н.", "21.01.1990", "5 лет", 3));
-    archive.addPerson(std::make_unique<Convict>("Волков Д. А.", "11.11.1985", "8 лет", 4));
+    archive.addPerson(a);
+    archive.addPerson(b);
 
-    const Article theft("ст. 158", "Кража");
-    const Article fraud("ст. 159", "Мошенничество");
-
-    CriminalCase c1("Д-1", 2015, "Кража из магазина", theft, 1);
-    c1.addConvictId(3);
-    CriminalCase c2("Д-2", 2018, "Мошенничество с недвижимостью", fraud, 2);
-    c2.addConvictId(4);
-    CriminalCase c3("Д-3", 2020, "Кража автомобиля, магазин рядом", theft, 1);
-    c3.addConvictId(3);
-    c3.addConvictId(4);
-
-    archive.addCase(c1);
-    archive.addCase(c2);
-    archive.addCase(c3);
-    return archive;
-}
-
-TEST(ArchiveTest, AddPersonRejectsDuplicateIdAndNull) {
-    Archive archive;
-    archive.addPerson(std::make_unique<Convict>("А", "01.01.2000", "1 год", 100));
-    archive.addPerson(std::make_unique<Investigator>("Б", "02.02.2001", "лейтенант", 100));
-    archive.addPerson(nullptr);
-
-    EXPECT_EQ(archive.getPeople().size(), 1u);
+    ASSERT_EQ(archive.getPeople().size(), 1u);
     EXPECT_EQ(archive.getPeople()[0]->getFullName(), "А");
 }
 
-TEST(ArchiveTest, ArticlesAndCasesDeduplication) {
+TEST(ArchiveBasicTest, ArticlesAndCasesDeduplication) {
     Archive archive;
     archive.addArticle(Article("ст. 158", "Кража"));
     archive.addArticle(Article("ст. 158", "Кража"));
@@ -154,27 +162,38 @@ TEST(ArchiveTest, ArticlesAndCasesDeduplication) {
     EXPECT_EQ(archive.getCases().size(), 1u);
 }
 
-TEST(ArchiveTest, FindPersonById) {
-    const Archive archive = makeArchive();
-
-    const Person* p = archive.findPersonById(3);
-    ASSERT_NE(p, nullptr);
-    EXPECT_EQ(p->getFullName(), "Орлов С. Н.");
-    EXPECT_EQ(archive.findPersonById(999), nullptr);
+TEST(ArchiveBasicTest, EmptyArchiveHasNoPeople) {
+    const Archive archive;
+    EXPECT_FALSE(archive.hasPerson(1));
+    EXPECT_THROW(archive.findPersonById(1), std::out_of_range);
 }
 
-TEST(ArchiveTest, Polymorphism) {
-    const Archive archive = makeArchive();
+TEST_F(ArchiveTest, HasPerson) {
+    EXPECT_TRUE(archive.hasPerson(3));
+    EXPECT_FALSE(archive.hasPerson(999));
+}
 
+TEST_F(ArchiveTest, FindPersonByIdReturnsReference) {
+    const Person& p = archive.findPersonById(3);
+    EXPECT_EQ(p.getFullName(), "Орлов С. Н.");
+    EXPECT_EQ(&p, &orlov);   // ссылка на тот же самый объект, а не копия
+}
+
+TEST_F(ArchiveTest, FindPersonByIdThrowsIfNotFound) {
+    EXPECT_THROW(archive.findPersonById(999), std::out_of_range);
+}
+
+TEST_F(ArchiveTest, Polymorphism) {
     // Итерируем коллекцию как коллекцию базового класса
     int convicts = 0;
     int investigators = 0;
-    for (const std::unique_ptr<Person>& p : archive.getPeople()) {
-        if (dynamic_cast<const Convict*>(p.get()) != nullptr) {
+    for (const Person* p : archive.getPeople()) {
+        ASSERT_NE(p, nullptr);
+        if (dynamic_cast<const Convict*>(p) != nullptr) {
             convicts++;
             EXPECT_NE(p->getInfo().find("Осужденный"), std::string::npos);
         }
-        if (dynamic_cast<const Investigator*>(p.get()) != nullptr) {
+        if (dynamic_cast<const Investigator*>(p) != nullptr) {
             investigators++;
             EXPECT_NE(p->getInfo().find("Следователь"), std::string::npos);
         }
@@ -183,9 +202,7 @@ TEST(ArchiveTest, Polymorphism) {
     EXPECT_EQ(investigators, 2);
 }
 
-TEST(ArchiveTest, FindByConvict) {
-    const Archive archive = makeArchive();
-
+TEST_F(ArchiveTest, FindByConvict) {
     const std::vector<const CriminalCase*> found = archive.findByConvict("Орлов С. Н.");
     ASSERT_EQ(found.size(), 2u);
     EXPECT_EQ(found[0]->getNumber(), "Д-1");
@@ -195,14 +212,11 @@ TEST(ArchiveTest, FindByConvict) {
     EXPECT_TRUE(archive.findByConvict("Неизвестный").empty());
 }
 
-TEST(ArchiveTest, FindByConvictIgnoresInvestigators) {
-    const Archive archive = makeArchive();
+TEST_F(ArchiveTest, FindByConvictIgnoresInvestigators) {
     EXPECT_TRUE(archive.findByConvict("Смирнов А. П.").empty());
 }
 
-TEST(ArchiveTest, FindByInvestigator) {
-    const Archive archive = makeArchive();
-
+TEST_F(ArchiveTest, FindByInvestigator) {
     const std::vector<const CriminalCase*> found = archive.findByInvestigator("Смирнов А. П.");
     ASSERT_EQ(found.size(), 2u);
     EXPECT_EQ(found[0]->getNumber(), "Д-1");
@@ -212,29 +226,30 @@ TEST(ArchiveTest, FindByInvestigator) {
     EXPECT_TRUE(archive.findByInvestigator("Орлов С. Н.").empty());
 }
 
-TEST(ArchiveTest, FindByContent) {
-    const Archive archive = makeArchive();
-
+TEST_F(ArchiveTest, FindByContent) {
     EXPECT_EQ(archive.findByContent("магазин").size(), 2u);
     EXPECT_EQ(archive.findByContent("недвижимост").size(), 1u);
     EXPECT_TRUE(archive.findByContent("отсутствует").empty());
     EXPECT_TRUE(archive.findByContent("").empty());
 }
 
-TEST(ArchiveTest, FindByArticle) {
-    const Archive archive = makeArchive();
-
+TEST_F(ArchiveTest, FindByArticle) {
     EXPECT_EQ(archive.findByArticle("ст. 158").size(), 2u);
     EXPECT_EQ(archive.findByArticle("Мошенничество").size(), 1u);
     EXPECT_TRUE(archive.findByArticle("ст. 999").empty());
 }
 
-TEST(ArchiveTest, GetCaseInfoContainsNames) {
-    const Archive archive = makeArchive();
-
+TEST_F(ArchiveTest, GetCaseInfoContainsNames) {
     const std::string info = archive.getCaseInfo(archive.getCases()[2]);
     EXPECT_NE(info.find("Д-3"), std::string::npos);
     EXPECT_NE(info.find("Смирнов А. П."), std::string::npos);
     EXPECT_NE(info.find("Орлов С. Н."), std::string::npos);
     EXPECT_NE(info.find("Волков Д. А."), std::string::npos);
+}
+
+TEST_F(ArchiveTest, GetCaseInfoUnknownPerson) {
+    const CriminalCase c("Д-9", 2021, "Описание", Article(), 777);
+    archive.addCase(c);
+    const std::string info = archive.getCaseInfo(archive.getCases().back());
+    EXPECT_NE(info.find("не найден"), std::string::npos);
 }

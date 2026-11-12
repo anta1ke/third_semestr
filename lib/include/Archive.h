@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -16,9 +15,10 @@
 class Archive {
 	private:
 		/**
-		 * @brief Массив людей (осужденные и следователи хранятся как объекты базового типа)
+		 * @brief Массив указателей на людей (осужденные и следователи хранятся как объекты базового типа).
+		 * Архив не владеет людьми: сами объекты создаются снаружи и должны жить дольше архива
 		 */
-		std::vector<std::unique_ptr<Person>> people;
+		std::vector<const Person*> people;
 
 		/**
 		 * @brief Массив дел
@@ -37,36 +37,16 @@ class Archive {
 		Archive() = default;
 
 		/**
-		 * @brief Конструктор копирования запрещён (архив владеет людьми через unique_ptr)
-		 */
-		Archive(const Archive&) = delete;
-
-		/**
-		 * @brief Конструктор перемещения
-		 */
-		Archive(Archive&&) noexcept = default;
-
-		/**
-		 * @brief Оператор присваивания копированием запрещён
-		 */
-		Archive& operator=(const Archive&) = delete;
-
-		/**
-		 * @brief Оператор присваивания перемещением
-		 */
-		Archive& operator=(Archive&&) noexcept = default;
-
-		/**
 		 * @brief Деструктор
 		 */
 		~Archive() = default;
 
 		/**
 		 * @brief Добавить человека (объект Convict, Investigator или Person).
-		 * Если человек с таким ID уже есть или указатель пустой, добавление игнорируется
-		 * @param person - уникальный указатель на человека
+		 * Если человек с таким ID уже есть, добавление игнорируется
+		 * @param person - ссылка на человека (объект должен жить дольше архива)
 		 */
-		void addPerson(std::unique_ptr<Person> person);
+		void addPerson(const Person& person);
 
 		/**
 		 * @brief Добавить статью (статья с уже существующим номером игнорируется)
@@ -82,9 +62,9 @@ class Archive {
 
 		/**
 		 * @brief Получить список людей
-		 * @return ссылку на массив людей (коллекция базового типа)
+		 * @return ссылку на массив указателей на людей (коллекция базового типа)
 		 */
-		const std::vector<std::unique_ptr<Person>>& getPeople() const noexcept;
+		const std::vector<const Person*>& getPeople() const noexcept;
 
 		/**
 		 * @brief Получить список дел
@@ -99,11 +79,19 @@ class Archive {
 		const std::vector<Article>& getArticles() const noexcept;
 
 		/**
+		 * @brief Проверить, есть ли в архиве человек с данным ID
+		 * @param id - ID человека
+		 * @return true - если человек есть, иначе false
+		 */
+		bool hasPerson(const int id) const noexcept;
+
+		/**
 		 * @brief Найти человека по ID
 		 * @param id - ID человека
-		 * @return указатель на человека, либо nullptr, если не найден
+		 * @return ссылку на человека
+		 * @throw std::out_of_range - если человека с таким ID нет (проверить заранее можно через hasPerson)
 		 */
-		const Person* findPersonById(const int id) const;
+		const Person& findPersonById(const int id) const;
 
 		/**
 		 * @brief Получить информацию о деле с именами следователя и осужденных
