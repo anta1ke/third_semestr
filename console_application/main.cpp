@@ -41,18 +41,11 @@ size_t getPos(const char* message);
 int getInt(const char* message);
 
 /**
- * @brief Функция выбора генератора и запуска обработки матрицы
+ * @brief Функция выбора генератора и заполнения матрицы
  * @param matrix - ссылка на матрицу matrix
  * @param message - сообщение
  */
 void chooseGenerator(Matrix<int>& matrix, const char* message);
-
-/**
- * @brief Функция заполнения матрицы, вывода и выполнения задания
- * @param matrix - ссылка на матрицу matrix
- * @param generator - константная ссылка на генератор
- */
-void processMatrix(Matrix<int>& matrix, const Generator& generator);
 
 /**
  * @brief Функция выбора и выполнения задания
@@ -72,6 +65,9 @@ int main(void) {
 	Matrix<int> matrix(rows, columns);
 
 	chooseGenerator(matrix, "Выберите тип заполнения массива:");
+	std::cout << "Полученная матрица:\n" << matrix.toString() << std::endl;
+
+	runTask(matrix);
 
 	return 0;
 }
@@ -114,38 +110,32 @@ void chooseGenerator(Matrix<int>& matrix, const char* message) {
 	switch (var) {
 		case zero_fill: {
 				  const ZeroGenerator generator{};
-				  processMatrix(matrix, generator);
+				  matrix.fillArray(generator);
 				  break;
 				  }
 		case random_fill: {
 				  const int minVal = getInt("Введите минимум диапазона:");
 				  const int maxVal = getInt("Введите максимум диапазона:");
 				  const RandomGenerator generator(minVal, maxVal);
-				  processMatrix(matrix, generator);
+				  matrix.fillArray(generator);
 				  break;
 				  }
 		case const_fill: {
 				 const int value = getInt("Введите значение константы:");
 				 const ConstGenerator generator(value);
-				 processMatrix(matrix, generator);
+				 matrix.fillArray(generator);
 				 break;
 				 }
 		case input_fill: {
 				 std::cout << "Введите значения массива:" << std::endl;
 				 const InputGenerator generator(std::cin);
-				 processMatrix(matrix, generator);
+				 matrix.fillArray(generator);
 				 break;
 				 }
 		default:
 				 std::cerr << "Некорректный выбор" << std::endl;
 				 std::exit(1);
 	}
-}
-
-void processMatrix(Matrix<int>& matrix, const Generator& generator) {
-	matrix.fillArray(generator);
-	std::cout << "Полученная матрица:\n" << matrix.toString() << std::endl;
-	runTask(matrix);
 }
 
 void runTask(const Matrix<int>& matrix) {
