@@ -16,9 +16,8 @@ class Exercise {
 		/**
 		 * @brief Конструктор
 		 * @param src - ссылка на матрицу
-		 * @param gen - ссылка на генератор
 		 */
-		Exercise(const Matrix<int>& src);
+		explicit Exercise(const Matrix<int>& src);
 
 		/**
 		 * @brief Виртуальный деструктор
