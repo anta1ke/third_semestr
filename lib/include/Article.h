@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+class Archive;
 
 /**
  * @brief Класс Article (статья уголовного кодекса)
@@ -25,10 +26,12 @@ class Article {
 
 		/**
 		 * @brief Конструктор
+		 * @param archive - архив, в котором проверяется уникальность номера
 		 * @param number - номер статьи
 		 * @param title - характер преступления
+		 * @throw std::invalid_argument - если статья с таким номером уже есть в архиве
 		 */
-		Article(const std::string& number, const std::string& title);
+		Article(const Archive& archive, const std::string& number, const std::string& title);
 
 		/**
 		 * @brief Получить номер статьи
