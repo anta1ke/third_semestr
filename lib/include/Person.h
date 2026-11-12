@@ -34,12 +34,11 @@ class Person {
 		Person();
 
 		/**
-		 * @brief Конструктор
+		 * @brief Конструктор (id выдаётся автоматически и уникален)
 		 * @param fullName - ФИО
 		 * @param birthDate - дата рождения
-		 * @param id - id человека (0 для автогенерации)
 		 */
-		Person(const std::string& fullName, const std::string& birthDate, const int id = 0);
+		Person(const std::string& fullName, const std::string& birthDate);
 
 		/**
 		 * @brief Виртуальный деструктор
