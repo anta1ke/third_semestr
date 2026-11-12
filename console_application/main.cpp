@@ -50,22 +50,22 @@ int main() {
 		archive.addConvict(volkov);
 		archive.addConvict(lebedev);
 
-		const Article theft("ст. 158", "Кража");
-		const Article fraud("ст. 159", "Мошенничество");
-		const Article robbery("ст. 162", "Разбой");
+		const Article theft(archive, "ст. 158", "Кража");
+		const Article fraud(archive, "ст. 159", "Мошенничество");
+		const Article robbery(archive, "ст. 162", "Разбой");
 		archive.addArticle(theft);
 		archive.addArticle(fraud);
 		archive.addArticle(robbery);
 
-		CriminalCase case1("Д-2015/17", 2015, "Кража из магазина электроники, ущерб 300 тысяч рублей", theft, smirnovId);
-		case1.addConvictId(orlovId);
+		CriminalCase case1(archive, "Д-2015/17", 2015, "Кража из магазина электроники, ущерб 300 тысяч рублей", theft, smirnovId);
+		case1.addConvictId(archive, orlovId);
 
-		CriminalCase case2("Д-2018/42", 2018, "Мошенничество с недвижимостью, группа лиц", fraud, kuznetsovaId);
-		case2.addConvictId(volkovId);
-		case2.addConvictId(lebedevId);
+		CriminalCase case2(archive, "Д-2018/42", 2018, "Мошенничество с недвижимостью, группа лиц", fraud, kuznetsovaId);
+		case2.addConvictId(archive, volkovId);
+		case2.addConvictId(archive, lebedevId);
 
-		CriminalCase case3("Д-2020/05", 2020, "Разбойное нападение на ювелирный магазин", robbery, smirnovId);
-		case3.addConvictId(orlovId);
+		CriminalCase case3(archive, "Д-2020/05", 2020, "Разбойное нападение на ювелирный магазин", robbery, smirnovId);
+		case3.addConvictId(archive, orlovId);
 
 		archive.addCase(case1);
 		archive.addCase(case2);
