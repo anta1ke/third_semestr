@@ -2,11 +2,19 @@
 #include <stdexcept>
 
 #include "../include/CriminalCase.h"
+#include "../include/Archive.h"
 
 CriminalCase::CriminalCase() : year(0), investigatorId(0) {}
 
-CriminalCase::CriminalCase(const std::string& number, const int year, const std::string& content, const Article& article, const int investigatorId)
-	: number(number), year(year), content(content), article(article), investigatorId(investigatorId) {}
+CriminalCase::CriminalCase(const Archive& archive, const std::string& number, const int year, const std::string& content, const Article& article, const int investigatorId)
+	: number(number), year(year), content(content), article(article), investigatorId(investigatorId) {
+	if (archive.hasCase(number)) {
+		throw std::invalid_argument("Дело с номером " + number + " уже есть в архиве");
+	}
+	if (!archive.hasInvestigator(investigatorId)) {
+		throw std::invalid_argument("Следователь с ID " + std::to_string(investigatorId) + " не найден");
+	}
+} {}
 
 const std::string& CriminalCase::getNumber() const noexcept {return number;}
 
@@ -22,7 +30,10 @@ const std::vector<int>& CriminalCase::getConvictIds() const noexcept {
 	return convictIds;
 }
 
-void CriminalCase::addConvictId(const int convictId) {
+void CriminalCase::addConvictId(const Archive& archive, const int convictId) {
+	if (!archive.hasConvict(convictId)) {
+		throw std::invalid_argument("Осужденный с ID " + std::to_string(convictId) + " не найден");
+	}
 	if (hasConvict(convictId)) {
 		throw std::invalid_argument("Осужденный с ID " + std::to_string(convictId) + " уже добавлен в дело");
 	}
