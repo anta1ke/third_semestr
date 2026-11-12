@@ -59,11 +59,20 @@ TEST(InvestigatorTest, GettersAndInfo) {
 }
 
 TEST(ArticleTest, GettersAndToString) {
-    const Article a("ст. 158", "Кража");
+    const Archive archive;
+    const Article a(archive, "ст. 158", "Кража");
 
     EXPECT_EQ(a.getNumber(), "ст. 158");
     EXPECT_EQ(a.getTitle(), "Кража");
     EXPECT_EQ(a.toString(), "ст. 158 (Кража)");
+}
+
+TEST(ArticleTest, ConstructorThrowsIfNumberExists) {
+    Archive archive;
+    archive.addArticle(Article(archive, "ст. 158", "Кража"));
+
+    EXPECT_THROW(Article(archive, "ст. 158", "Другое название"), std::invalid_argument);
+    EXPECT_NO_THROW(Article(archive, "ст. 159", "Мошенничество"));
 }
 
 TEST(CriminalCaseTest, DefaultIsZeroInitialized) {
@@ -74,50 +83,16 @@ TEST(CriminalCaseTest, DefaultIsZeroInitialized) {
     EXPECT_TRUE(c.getConvictIds().empty());
 }
 
-TEST(CriminalCaseTest, GettersAndConvicts) {
-    CriminalCase c("Д-1", 2015, "Кража", Article("ст. 158", "Кража"), 5);
-
-    EXPECT_EQ(c.getNumber(), "Д-1");
-    EXPECT_EQ(c.getYear(), 2015);
-    EXPECT_EQ(c.getContent(), "Кража");
-    EXPECT_EQ(c.getArticle().getNumber(), "ст. 158");
-    EXPECT_EQ(c.getInvestigatorId(), 5);
-
-    EXPECT_FALSE(c.hasConvict(10));
-    c.addConvictId(10);
-    c.addConvictId(11);
-    EXPECT_TRUE(c.hasConvict(10));
-    EXPECT_TRUE(c.hasConvict(11));
-    ASSERT_EQ(c.getConvictIds().size(), 2u);
-}
-
-TEST(CriminalCaseTest, AddSameConvictTwiceThrows) {
-    CriminalCase c("Д-1", 2015, "Кража", Article("ст. 158", "Кража"), 5);
-    c.addConvictId(10);
-    EXPECT_THROW(c.addConvictId(10), std::invalid_argument);
-    EXPECT_EQ(c.getConvictIds().size(), 1u);
-}
-
-TEST(CriminalCaseTest, GetInfoContainsFields) {
-    const CriminalCase c("Д-1", 2015, "Кража в магазине", Article("ст. 158", "Кража"), 5);
-    const std::string info = c.getInfo();
-
-    EXPECT_NE(info.find("Д-1"), std::string::npos);
-    EXPECT_NE(info.find("2015"), std::string::npos);
-    EXPECT_NE(info.find("ст. 158"), std::string::npos);
-    EXPECT_NE(info.find("Кража в магазине"), std::string::npos);
-}
-
 // Тестовый класс: архив с тестовыми данными
 class ArchiveTest : public ::testing::Test {
     protected:
+        Archive archive;   // объявлен первым: статьи ниже создаются с проверкой по нему
         const Investigator smirnov{"Смирнов А. П.", "14.05.1975", "майор"};
         const Investigator kuznetsova{"Кузнецова О. И.", "02.09.1982", "капитан"};
         const Convict orlov{"Орлов С. Н.", "21.01.1990", "5 лет"};
         const Convict volkov{"Волков Д. А.", "11.11.1985", "8 лет"};
-        const Article theft{"ст. 158", "Кража"};
-        const Article fraud{"ст. 159", "Мошенничество"};
-        Archive archive;
+        const Article theft{archive, "ст. 158", "Кража"};
+        const Article fraud{archive, "ст. 159", "Мошенничество"};
 
         ArchiveTest() {
             archive.addInvestigator(smirnov);
@@ -127,19 +102,70 @@ class ArchiveTest : public ::testing::Test {
             archive.addArticle(theft);
             archive.addArticle(fraud);
 
-            CriminalCase c1("Д-1", 2015, "Кража из магазина", theft, smirnov.getId());
-            c1.addConvictId(orlov.getId());
-            CriminalCase c2("Д-2", 2018, "Мошенничество с недвижимостью", fraud, kuznetsova.getId());
-            c2.addConvictId(volkov.getId());
-            CriminalCase c3("Д-3", 2020, "Кража автомобиля, магазин рядом", theft, smirnov.getId());
-            c3.addConvictId(orlov.getId());
-            c3.addConvictId(volkov.getId());
-
+            CriminalCase c1(archive, "Д-1", 2015, "Кража из магазина", theft, smirnov.getId());
+            c1.addConvictId(archive, orlov.getId());
             archive.addCase(c1);
+
+            CriminalCase c2(archive, "Д-2", 2018, "Мошенничество с недвижимостью", fraud, kuznetsova.getId());
+            c2.addConvictId(archive, volkov.getId());
             archive.addCase(c2);
+
+            CriminalCase c3(archive, "Д-3", 2020, "Кража автомобиля, магазин рядом", theft, smirnov.getId());
+            c3.addConvictId(archive, orlov.getId());
+            c3.addConvictId(archive, volkov.getId());
             archive.addCase(c3);
         }
 };
+
+// CriminalCase: проверки в конструкторе и addConvictId
+
+TEST_F(ArchiveTest, CaseGetters) {
+    const CriminalCase c(archive, "Д-9", 2021, "Описание", theft, smirnov.getId());
+
+    EXPECT_EQ(c.getNumber(), "Д-9");
+    EXPECT_EQ(c.getYear(), 2021);
+    EXPECT_EQ(c.getContent(), "Описание");
+    EXPECT_EQ(c.getArticle().getNumber(), "ст. 158");
+    EXPECT_EQ(c.getInvestigatorId(), smirnov.getId());
+    EXPECT_TRUE(c.getConvictIds().empty());
+}
+
+TEST_F(ArchiveTest, CaseGetInfoContainsFields) {
+    const CriminalCase c(archive, "Д-9", 2021, "Кража в магазине", theft, smirnov.getId());
+    const std::string info = c.getInfo();
+
+    EXPECT_NE(info.find("Д-9"), std::string::npos);
+    EXPECT_NE(info.find("2021"), std::string::npos);
+    EXPECT_NE(info.find("ст. 158"), std::string::npos);
+    EXPECT_NE(info.find("Кража в магазине"), std::string::npos);
+}
+
+TEST_F(ArchiveTest, CaseConstructorThrowsIfNumberExists) {
+    EXPECT_THROW(CriminalCase(archive, "Д-1", 2021, "Тот же номер", theft, smirnov.getId()), std::invalid_argument);
+}
+
+TEST_F(ArchiveTest, CaseConstructorThrowsIfInvestigatorNotFound) {
+    EXPECT_THROW(CriminalCase(archive, "Д-9", 2021, "Описание", theft, 999), std::invalid_argument);
+}
+
+TEST_F(ArchiveTest, CaseConstructorThrowsIfConvictGivenAsInvestigator) {
+    // ID есть в архиве, но это осужденный, а не следователь
+    EXPECT_THROW(CriminalCase(archive, "Д-9", 2021, "Описание", theft, orlov.getId()), std::invalid_argument);
+}
+
+TEST_F(ArchiveTest, AddConvictIdChecksConvict) {
+    CriminalCase c(archive, "Д-9", 2021, "Описание", theft, smirnov.getId());
+
+    EXPECT_THROW(c.addConvictId(archive, 999), std::invalid_argument);                 // нет такого
+    EXPECT_THROW(c.addConvictId(archive, kuznetsova.getId()), std::invalid_argument);  // это следователь
+
+    c.addConvictId(archive, orlov.getId());
+    EXPECT_THROW(c.addConvictId(archive, orlov.getId()), std::invalid_argument);       // уже добавлен
+    ASSERT_EQ(c.getConvictIds().size(), 1u);
+    EXPECT_TRUE(c.hasConvict(orlov.getId()));
+}
+
+// Archive
 
 TEST(ArchiveBasicTest, AddSameConvictTwiceThrows) {
     const Convict a("А", "01.01.2000", "1 год");
@@ -171,12 +197,14 @@ TEST(ArchiveBasicTest, ArchiveStoresCopies) {
     EXPECT_EQ(archive.getConvicts()[0].getFullName(), "Временный");
 }
 
-TEST(ArchiveBasicTest, DuplicateArticleThrows) {
+TEST(ArchiveBasicTest, AddSameArticleTwiceThrows) {
     Archive archive;
-    archive.addArticle(Article("ст. 158", "Кража"));
-    archive.addArticle(Article("ст. 159", "Мошенничество"));
-    EXPECT_THROW(archive.addArticle(Article("ст. 158", "Кража")), std::invalid_argument);
-    EXPECT_EQ(archive.getArticles().size(), 2u);
+    const Article a(archive, "ст. 158", "Кража");
+    archive.addArticle(a);
+    EXPECT_THROW(archive.addArticle(a), std::invalid_argument);
+    EXPECT_EQ(archive.getArticles().size(), 1u);
+    EXPECT_TRUE(archive.hasArticle("ст. 158"));
+    EXPECT_FALSE(archive.hasArticle("ст. 159"));
 }
 
 TEST(ArchiveBasicTest, EmptyArchiveHasNoPeople) {
@@ -187,33 +215,13 @@ TEST(ArchiveBasicTest, EmptyArchiveHasNoPeople) {
     EXPECT_THROW(archive.findInvestigatorById(1), std::out_of_range);
 }
 
-TEST_F(ArchiveTest, DuplicateCaseNumberThrows) {
-    const CriminalCase c("Д-1", 2021, "Другое дело с тем же номером", theft, smirnov.getId());
+TEST_F(ArchiveTest, AddSameCaseTwiceThrows) {
+    // дело создано, пока номера Д-9 в архиве не было, но добавить его дважды нельзя
+    const CriminalCase c(archive, "Д-9", 2021, "Описание", theft, smirnov.getId());
+    archive.addCase(c);
     EXPECT_THROW(archive.addCase(c), std::invalid_argument);
-    EXPECT_EQ(archive.getCases().size(), 3u);
-}
-
-TEST_F(ArchiveTest, CaseWithUnknownInvestigatorThrows) {
-    const CriminalCase c("Д-9", 2021, "Описание", theft, 999);
-    EXPECT_THROW(archive.addCase(c), std::invalid_argument);
-}
-
-TEST_F(ArchiveTest, CaseWithConvictAsInvestigatorThrows) {
-    // ID есть в архиве, но это осужденный, а не следователь
-    const CriminalCase c("Д-9", 2021, "Описание", theft, orlov.getId());
-    EXPECT_THROW(archive.addCase(c), std::invalid_argument);
-}
-
-TEST_F(ArchiveTest, CaseWithUnknownConvictThrows) {
-    CriminalCase c("Д-9", 2021, "Описание", theft, smirnov.getId());
-    c.addConvictId(999);
-    EXPECT_THROW(archive.addCase(c), std::invalid_argument);
-}
-
-TEST_F(ArchiveTest, CaseWithInvestigatorAsConvictThrows) {
-    CriminalCase c("Д-9", 2021, "Описание", theft, smirnov.getId());
-    c.addConvictId(kuznetsova.getId());
-    EXPECT_THROW(archive.addCase(c), std::invalid_argument);
+    EXPECT_EQ(archive.getCases().size(), 4u);
+    EXPECT_TRUE(archive.hasCase("Д-9"));
 }
 
 TEST_F(ArchiveTest, HasConvictAndInvestigator) {
@@ -306,8 +314,12 @@ TEST_F(ArchiveTest, GetCaseInfoContainsNames) {
 }
 
 TEST_F(ArchiveTest, GetCaseInfoUnknownPerson) {
-    // дело не добавлено в архив, поэтому его следователя в архиве нет
-    const CriminalCase c("Д-9", 2021, "Описание", theft, -1);
+    // дело создано в другом архиве, поэтому его следователя в нашем архиве нет
+    Archive other;
+    const Investigator stranger("Посторонний", "01.01.1980", "лейтенант");
+    other.addInvestigator(stranger);
+    const CriminalCase c(other, "Д-9", 2021, "Описание", Article(other, "ст. 1", "Тест"), stranger.getId());
+
     const std::string info = archive.getCaseInfo(c);
     EXPECT_NE(info.find("не найден"), std::string::npos);
 }
