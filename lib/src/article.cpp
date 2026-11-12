@@ -1,6 +1,13 @@
-#include "../include/Article.h"
+#include <stdexcept>
 
-Article::Article(const std::string& number, const std::string& title) : number(number), title(title) {}
+#include "../include/Article.h"
+#include "../include/Archive.h"
+
+Article::Article(const Archive& archive, const std::string& number, const std::string& title) : number(number), title(title) {
+	if (archive.hasArticle(number)) {
+		throw std::invalid_argument("Статья " + number + " уже есть в архиве");
+	}
+}
 
 const std::string& Article::getNumber() const noexcept {return number;}
 
