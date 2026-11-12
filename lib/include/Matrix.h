@@ -7,7 +7,10 @@
 #include <utility>
 #include <string>
 
-#include "Generator.h"
+#include "ZeroGenerator.h"
+#include "ConstGenerator.h"
+#include "RandomGenerator.h"
+#include "InputGenerator.h"
 
 /**
  * @brief Шаблонный класс Matrix (двумерный массив)
@@ -123,11 +126,29 @@ class Matrix {
 		 */
 		size_t getColumns() const noexcept;
 
-		/**
-		 * @brief Заполнение массива, используя абстрактный класс Generator
-		 * @param generator - ссылка на генератор значений
+				/**
+		 * @brief Заполнение массива нулями
+		 * @param generator - ссылка на генератор нулей
 		 */
-		void fillArray(const Generator& generator);
+		void fillArray(const ZeroGenerator& generator);
+
+		/**
+		 * @brief Заполнение массива константой
+		 * @param generator - ссылка на генератор константы
+		 */
+		void fillArray(const ConstGenerator& generator);
+
+		/**
+		 * @brief Заполнение массива случайными числами
+		 * @param generator - ссылка на генератор случайных чисел
+		 */
+		void fillArray(const RandomGenerator& generator);
+
+		/**
+		 * @brief Заполнение массива значениями из потока ввода
+		 * @param generator - ссылка на генератор ввода
+		 */
+		void fillArray(const InputGenerator& generator);
 };
 
 /**
@@ -296,7 +317,34 @@ bool Matrix<T>::operator!=(const Matrix& other) const {
 }
 
 template <typename T>
-void Matrix<T>::fillArray(const Generator& generator) {
+void Matrix<T>::fillArray(const ZeroGenerator& generator) {
+	for (size_t i = 0; i < rows; i++) {
+		for (size_t j = 0; j < columns; j++) {
+			arr[i][j] = static_cast<T>(generator.generate());
+		}
+	}
+}
+
+template <typename T>
+void Matrix<T>::fillArray(const ConstGenerator& generator) {
+	for (size_t i = 0; i < rows; i++) {
+		for (size_t j = 0; j < columns; j++) {
+			arr[i][j] = static_cast<T>(generator.generate());
+		}
+	}
+}
+
+template <typename T>
+void Matrix<T>::fillArray(const RandomGenerator& generator) {
+	for (size_t i = 0; i < rows; i++) {
+		for (size_t j = 0; j < columns; j++) {
+			arr[i][j] = static_cast<T>(generator.generate());
+		}
+	}
+}
+
+template <typename T>
+void Matrix<T>::fillArray(const InputGenerator& generator) {
 	for (size_t i = 0; i < rows; i++) {
 		for (size_t j = 0; j < columns; j++) {
 			arr[i][j] = static_cast<T>(generator.generate());
