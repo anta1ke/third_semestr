@@ -3,7 +3,7 @@
 
 #include "../include/Task2Exercise.h"
 
-Task2Exercise::Task2Exercise(const Matrix<int>& src, Generator& gen) : Exercise(src, gen) {}
+Task2Exercise::Task2Exercise(const Matrix<int>& src) : Exercise(src) {}
 
 Matrix<int> Task2Exercise::solve() const {
 	const size_t rows = source.getRows();
