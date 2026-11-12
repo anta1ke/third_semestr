@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 
-#include "Person.h"
 #include "Convict.h"
 #include "Investigator.h"
 #include "Article.h"
@@ -15,10 +14,14 @@
 class Archive {
 	private:
 		/**
-		 * @brief Массив указателей на людей (осужденные и следователи хранятся как объекты базового типа).
-		 * Архив не владеет людьми: сами объекты создаются снаружи и должны жить дольше архива
+		 * @brief Массив осужденных
 		 */
-		std::vector<const Person*> people;
+		std::vector<Convict> convicts;
+
+		/**
+		 * @brief Массив следователей
+		 */
+		std::vector<Investigator> investigators;
 
 		/**
 		 * @brief Массив дел
@@ -42,29 +45,45 @@ class Archive {
 		~Archive() = default;
 
 		/**
-		 * @brief Добавить человека (объект Convict, Investigator или Person).
-		 * Если человек с таким ID уже есть, добавление игнорируется
-		 * @param person - ссылка на человека (объект должен жить дольше архива)
+		 * @brief Добавить осужденного
+		 * @param convict - ссылка на осужденного (в архив сохраняется копия)
+		 * @throw std::invalid_argument - если человек с таким ID уже есть в архиве
 		 */
-		void addPerson(const Person& person);
+		void addConvict(const Convict& convict);
 
 		/**
-		 * @brief Добавить статью (статья с уже существующим номером игнорируется)
+		 * @brief Добавить следователя
+		 * @param investigator - ссылка на следователя (в архив сохраняется копия)
+		 * @throw std::invalid_argument - если человек с таким ID уже есть в архиве
+		 */
+		void addInvestigator(const Investigator& investigator);
+
+		/**
+		 * @brief Добавить статью
 		 * @param article - статья
+		 * @throw std::invalid_argument - если статья с таким номером уже есть в архиве
 		 */
 		void addArticle(const Article& article);
 
 		/**
-		 * @brief Добавить дело (дело с уже существующим номером игнорируется)
+		 * @brief Добавить дело
 		 * @param criminalCase - дело
+		 * @throw std::invalid_argument - если дело с таким номером уже есть, если следователя
+		 * с ID дела нет в архиве или если кого-то из осужденных дела нет в архиве
 		 */
 		void addCase(const CriminalCase& criminalCase);
 
 		/**
-		 * @brief Получить список людей
-		 * @return ссылку на массив указателей на людей (коллекция базового типа)
+		 * @brief Получить список осужденных
+		 * @return ссылку на массив осужденных
 		 */
-		const std::vector<const Person*>& getPeople() const noexcept;
+		const std::vector<Convict>& getConvicts() const noexcept;
+
+		/**
+		 * @brief Получить список следователей
+		 * @return ссылку на массив следователей
+		 */
+		const std::vector<Investigator>& getInvestigators() const noexcept;
 
 		/**
 		 * @brief Получить список дел
@@ -79,19 +98,34 @@ class Archive {
 		const std::vector<Article>& getArticles() const noexcept;
 
 		/**
-		 * @brief Проверить, есть ли в архиве человек с данным ID
-		 * @param id - ID человека
-		 * @return true - если человек есть, иначе false
+		 * @brief Проверить, есть ли в архиве осужденный с данным ID
+		 * @param id - ID осужденного
+		 * @return true - если есть, иначе false
 		 */
-		bool hasPerson(const int id) const noexcept;
+		bool hasConvict(const int id) const noexcept;
 
 		/**
-		 * @brief Найти человека по ID
-		 * @param id - ID человека
-		 * @return ссылку на человека
-		 * @throw std::out_of_range - если человека с таким ID нет (проверить заранее можно через hasPerson)
+		 * @brief Проверить, есть ли в архиве следователь с данным ID
+		 * @param id - ID следователя
+		 * @return true - если есть, иначе false
 		 */
-		const Person& findPersonById(const int id) const;
+		bool hasInvestigator(const int id) const noexcept;
+
+		/**
+		 * @brief Найти осужденного по ID
+		 * @param id - ID осужденного
+		 * @return ссылку на осужденного
+		 * @throw std::out_of_range - если осужденного с таким ID нет (проверить заранее можно через hasConvict)
+		 */
+		const Convict& findConvictById(const int id) const;
+
+		/**
+		 * @brief Найти следователя по ID
+		 * @param id - ID следователя
+		 * @return ссылку на следователя
+		 * @throw std::out_of_range - если следователя с таким ID нет (проверить заранее можно через hasInvestigator)
+		 */
+		const Investigator& findInvestigatorById(const int id) const;
 
 		/**
 		 * @brief Получить информацию о деле с именами следователя и осужденных
@@ -103,28 +137,28 @@ class Archive {
 		/**
 		 * @brief Найти дела по ФИО осужденного
 		 * @param fullName - ФИО осужденного
-		 * @return массив указателей на найденные дела (действительны до следующего addCase)
+		 * @return массив найденных дел (копии)
 		 */
-		std::vector<const CriminalCase*> findByConvict(const std::string& fullName) const;
+		std::vector<CriminalCase> findByConvict(const std::string& fullName) const;
 
 		/**
 		 * @brief Найти дела, которые вёл данный следователь
 		 * @param fullName - ФИО следователя
-		 * @return массив указателей на найденные дела (действительны до следующего addCase)
+		 * @return массив найденных дел (копии)
 		 */
-		std::vector<const CriminalCase*> findByInvestigator(const std::string& fullName) const;
+		std::vector<CriminalCase> findByInvestigator(const std::string& fullName) const;
 
 		/**
 		 * @brief Найти дела по содержанию (поиск подстроки, чувствителен к регистру)
 		 * @param keyword - искомый фрагмент текста (пустой фрагмент даёт пустой результат)
-		 * @return массив указателей на найденные дела (действительны до следующего addCase)
+		 * @return массив найденных дел (копии)
 		 */
-		std::vector<const CriminalCase*> findByContent(const std::string& keyword) const;
+		std::vector<CriminalCase> findByContent(const std::string& keyword) const;
 
 		/**
 		 * @brief Найти дела по статье преступления
 		 * @param article - номер статьи либо характер преступления
-		 * @return массив указателей на найденные дела (действительны до следующего addCase)
+		 * @return массив найденных дел (копии)
 		 */
-		std::vector<const CriminalCase*> findByArticle(const std::string& article) const;
+		std::vector<CriminalCase> findByArticle(const std::string& article) const;
 };
