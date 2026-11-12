@@ -4,12 +4,8 @@ int Person::nextId = 1;
 
 Person::Person() : id(nextId++) {}
 
-Person::Person(const std::string& fullName, const std::string& birthDate, const int id)
-	: id(id > 0 ? id : nextId++), fullName(fullName), birthDate(birthDate) {
-	if (this->id >= nextId) {
-		nextId = this->id + 1;
-	}
-}
+Person::Person(const std::string& fullName, const std::string& birthDate)
+	: id(nextId++), fullName(fullName), birthDate(birthDate) {}
 
 int Person::getId() const noexcept {return id;}
 
