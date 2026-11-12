@@ -23,9 +23,8 @@ class Convict : public Person {
 		 * @param fullName - ФИО осужденного
 		 * @param birthDate - дата рождения
 		 * @param sentence - приговор (мера наказания)
-		 * @param id - id осужденного (0 для автогенерации)
 		 */
-		Convict(const std::string& fullName, const std::string& birthDate, const std::string& sentence, const int id = 0);
+		Convict(const std::string& fullName, const std::string& birthDate, const std::string& sentence);
 
 		/**
 		 * @brief Получить приговор
