@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <istream>
 #include <ostream>
+#include <stdexcept>
 #include <utility>
 #include <string>
 
@@ -98,6 +99,7 @@ class Matrix {
 		 * @brief Получить указатель на строку по индексу (только чтение)
 		 * @param index - номер строки
 		 * @return указатель на строку по индексу
+		 * @throw std::out_of_range - если индекс выходит за границы матрицы
 		 */
 		const T* operator[](const size_t index) const;
 
@@ -105,6 +107,7 @@ class Matrix {
 		 * @brief Получить указатель на строку по индексу
 		 * @param index - номер строки
 		 * @return указатель на строку по индексу
+		 * @throw std::out_of_range - если индекс выходит за границы матрицы
 		 */
 		T* operator[](const size_t index);
 
@@ -193,11 +196,28 @@ Matrix<T>::~Matrix() {
 template <typename T>
 Matrix<T>& Matrix<T>::operator=(const Matrix& other) {
 	if (this == &other) return *this;
-	Matrix temp(other);
 
-	std::swap(rows, temp.rows);
-	std::swap(columns, temp.columns);
-	std::swap(arr, temp.arr);
+	if (arr != nullptr) {
+		for (size_t i = 0; i < rows; i++) {
+			delete[] arr[i];
+		}
+		delete[] arr;
+	}
+
+	rows = other.rows;
+	columns = other.columns;
+	arr = nullptr;
+
+	if (rows == 0 || columns == 0) {
+		return *this;
+	}
+	arr = new T* [rows];
+	for (size_t i = 0; i < rows; i++) {
+		arr[i] = new T[columns]();
+		for (size_t j = 0; j < columns; j++) {
+			arr[i][j] = other.arr[i][j];
+		}
+	}
 
 	return *this;
 }
@@ -222,11 +242,17 @@ size_t Matrix<T>::getColumns() const noexcept {return columns;}
 
 template <typename T>
 T* Matrix<T>::operator[](const size_t index) {
+	if (index >= rows) {
+		throw std::out_of_range("Индекс строки выходит за границы матрицы");
+	}
 	return arr[index];
 }
 
 template <typename T>
 const T* Matrix<T>::operator[](const size_t index) const {
+	if (index >= rows) {
+		throw std::out_of_range("Индекс строки выходит за границы матрицы");
+	}
 	return arr[index];
 }
 
