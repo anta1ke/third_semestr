@@ -2,8 +2,8 @@
 
 Convict::Convict() : Person() {}
 
-Convict::Convict(const std::string& fullName, const std::string& birthDate, const std::string& sentence, const int id)
-	: Person(fullName, birthDate, id), sentence(sentence) {}
+Convict::Convict(const std::string& fullName, const std::string& birthDate, const std::string& sentence)
+	: Person(fullName, birthDate), sentence(sentence) {}
 
 const std::string& Convict::getSentence() const noexcept {return sentence;}
 
