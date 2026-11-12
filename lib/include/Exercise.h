@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Matrix.h"
-#include "Generator.h"
 
 /**
  * @brief Абстрактный класс Exercise
@@ -13,18 +12,13 @@ class Exercise {
 		 */
 		const Matrix<int>& source;
 
-		/**
-		 * @brief Ссылка на генератор значений
-		 */
-		Generator& generator;
-
 	public:
 		/**
 		 * @brief Конструктор
 		 * @param src - ссылка на матрицу
 		 * @param gen - ссылка на генератор
 		 */
-		Exercise(const Matrix<int>& src, Generator& gen);
+		Exercise(const Matrix<int>& src);
 
 		/**
 		 * @brief Виртуальный деструктор
