@@ -2,8 +2,8 @@
 
 Investigator::Investigator() : Person() {}
 
-Investigator::Investigator(const std::string& fullName, const std::string& birthDate, const std::string& rank, const int id)
-	: Person(fullName, birthDate, id), rank(rank) {}
+Investigator::Investigator(const std::string& fullName, const std::string& birthDate, const std::string& rank)
+	: Person(fullName, birthDate), rank(rank) {}
 
 const std::string& Investigator::getRank() const noexcept {return rank;}
 
