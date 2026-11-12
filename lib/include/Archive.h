@@ -98,6 +98,20 @@ class Archive {
 		const std::vector<Article>& getArticles() const noexcept;
 
 		/**
+		 * @brief Проверить, есть ли в архиве статья с данным номером
+		 * @param number - номер статьи
+		 * @return true - если есть, иначе false
+		 */
+		bool hasArticle(const std::string& number) const noexcept;
+
+		/**
+		 * @brief Проверить, есть ли в архиве дело с данным номером
+		 * @param number - номер дела
+		 * @return true - если есть, иначе false
+		 */
+		bool hasCase(const std::string& number) const noexcept;
+
+		/**
 		 * @brief Проверить, есть ли в архиве осужденный с данным ID
 		 * @param id - ID осужденного
 		 * @return true - если есть, иначе false
