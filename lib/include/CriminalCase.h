@@ -94,7 +94,9 @@ class CriminalCase {
 
 		/**
 		 * @brief Добавить осужденного по делу
+		 * (существование осужденного проверяет архив при добавлении дела)
 		 * @param convictId - ID осужденного
+		 * @throw std::invalid_argument - если этот осужденный уже добавлен в дело
 		 */
 		void addConvictId(const int convictId);
 
