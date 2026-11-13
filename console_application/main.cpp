@@ -1,5 +1,4 @@
 #include <exception>
-#include <functional>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -25,11 +24,6 @@ int main() {
 	const Convict orlov("Орлов Сергей Николаевич", "21.01.1990", "5 лет лишения свободы");
 	const Convict volkov("Волков Дмитрий Андреевич", "11.11.1985", "8 лет лишения свободы");
 	const Convict lebedev("Лебедев Игорь Олегович", "30.07.1979", "3 года условно");
-
-	std::cout << "Все люди в архиве:" << std::endl;
-	for (const Person& person : people) {
-		std::cout << person.getInfo() << std::endl;
-	}
 
 	const int smirnovId = smirnov.getId();
 	const int kuznetsovaId = kuznetsova.getId();
