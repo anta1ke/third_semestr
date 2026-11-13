@@ -14,7 +14,7 @@ CriminalCase::CriminalCase(const Archive& archive, const std::string& number, co
 	if (!archive.hasInvestigator(investigatorId)) {
 		throw std::invalid_argument("Следователь с ID " + std::to_string(investigatorId) + " не найден");
 	}
-} {}
+}
 
 const std::string& CriminalCase::getNumber() const noexcept {return number;}
 
